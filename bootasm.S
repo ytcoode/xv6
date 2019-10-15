@@ -54,23 +54,32 @@ seta20.2:
   # Complete the transition to 32-bit protected mode by using a long jmp
   # to reload %cs and %eip.  The segment descriptors are set up with no
   # translation, so that the mapping is still the identity mapping.
+  # SEG_KCODE值为1，表示引用gdt中下标为1的segment descriptor，即内核代码
+  # 左移3位的原因是segment selector的低3位要用于表示其他意义
+  # 有关segment selector的具体格式请看intel开发手册卷3的3.4.2部分
   ljmp    $(SEG_KCODE<<3), $start32
 
 .code32  # Tell assembler to generate 32-bit code now.
 start32:
   # Set up the protected-mode data segment registers
-  movw    $(SEG_KDATA<<3), %ax    # Our data segment selector
+  movw    $(SEG_KDATA<<3), %ax    # Our data segment selector，SEG_KDATA值为2，表示指向gdt下标为2的segment descriptor
   movw    %ax, %ds                # -> DS: Data Segment
   movw    %ax, %es                # -> ES: Extra Segment
   movw    %ax, %ss                # -> SS: Stack Segment
-  movw    $0, %ax                 # Zero segments not ready for use
+  movw    $0, %ax                 # Zero segments not ready for use，gdt的0下标指向的数据为null
   movw    %ax, %fs                # -> FS
   movw    %ax, %gs                # -> GS
 
   # Set up the stack pointer and call into C.
+  # start为该代码的起始地址，即0x7c00
+  # 下面将start值放入%esp中用来设置堆栈起始地址
+  # 因为堆栈是向下增长的，所以说内存区域0x7c00地址往下是堆栈区，0x7c00地址往上是代码区
   movl    $start, %esp
+
+  # 调用bootmain.c中的bootmain方法
   call    bootmain
 
+  # 下面的逻辑不应该被执行，除非代码bug了
   # If bootmain returns (it shouldn't), trigger a Bochs
   # breakpoint if running under Bochs, then loop.
   movw    $0x8a00, %ax            # 0x8a00 -> port 0x8a00
