@@ -8,11 +8,11 @@
 # with %cs=0 %ip=7c00.
 
 .code16                       # Assemble for 16-bit mode
-.globl start
+.globl start                  # 声明start对外开放，这样Makefile中才可以使用
 start:
   cli                         # BIOS enabled interrupts; disable
 
-  # Zero data segment registers DS, ES, and SS.
+  # Zero data segment registers DS, ES, and SS. （cs在执行代码时会被用到，所以不能被修改）
   xorw    %ax,%ax             # Set %ax to zero
   movw    %ax,%ds             # -> Data Segment
   movw    %ax,%es             # -> Extra Segment
@@ -20,6 +20,12 @@ start:
 
   # Physical address line A20 is tied to zero so that the first PCs 
   # with 2 MB would run software that assumed 1 MB.  Undo that.
+  # 有关A20更多信息，请看下面的链接：
+  # https://wiki.osdev.org/A20_Line
+  # 有关seta20.1和seta20.2代码是什么意思，请看下面的链接：
+  # https://www.win.tue.nl/~aeb/linux/kbd/A20.html
+  # https://wiki.osdev.org/I/O_Ports
+  # https://wiki.osdev.org/"8042"_PS/2_Controller
 seta20.1:
   inb     $0x64,%al               # Wait for not busy
   testb   $0x2,%al
@@ -39,9 +45,9 @@ seta20.2:
   # Switch from real to protected mode.  Use a bootstrap GDT that makes
   # virtual addresses map directly to physical addresses so that the
   # effective memory map doesn't change during the transition.
-  lgdt    gdtdesc
+  lgdt    gdtdesc                 # 初始化gdt
   movl    %cr0, %eax
-  orl     $CR0_PE, %eax
+  orl     $CR0_PE, %eax           # 开启保护模式（cr0寄存器字段描述请看：https://wiki.osdev.org/CPU_Registers_x86）
   movl    %eax, %cr0
 
 //PAGEBREAK!
@@ -76,13 +82,15 @@ spin:
   jmp     spin
 
 # Bootstrap GDT
+# 有关gdt和gdtdesc的详细格式说明，请阅读 Intel® 64 and IA-32 Architectures Software Developer’s Manual 的第3章的第3.4和3.5节
+# 地址为：https://software.intel.com/sites/default/files/managed/39/c5/325462-sdm-vol-1-2abcd-3abcd.pdf
 .p2align 2                                # force 4 byte alignment
 gdt:
-  SEG_NULLASM                             # null seg
+  SEG_NULLASM                             # null seg，gdt的地一个descriptor不用
   SEG_ASM(STA_X|STA_R, 0x0, 0xffffffff)   # code seg
   SEG_ASM(STA_W, 0x0, 0xffffffff)         # data seg
 
 gdtdesc:
-  .word   (gdtdesc - gdt - 1)             # sizeof(gdt) - 1
+  .word   (gdtdesc - gdt - 1)             # sizeof(gdt) - 1，gdt的地址范围是[base, base+limit]，包含最后一个字节，所以减1
   .long   gdt                             # address gdt
 

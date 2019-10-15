@@ -8,6 +8,7 @@
 
 // The 0xC0 means the limit is in 4096-byte units
 // and (for executable segments) 32-bit mode.
+// lim后12位被丢弃的原因是，当前lim的单位是4KiB
 #define SEG_ASM(type,base,lim)                                  \
         .word (((lim) >> 12) & 0xffff), ((base) & 0xffff);      \
         .byte (((base) >> 16) & 0xff), (0x90 | (type)),         \
@@ -15,4 +16,4 @@
 
 #define STA_X     0x8       // Executable segment
 #define STA_W     0x2       // Writeable (non-executable segments)
-#define STA_R     0x2       // Readable (executable segments)
+#define STA_R     0x2       // Readable (executable segments) 这个是没有错误的，具体可见
