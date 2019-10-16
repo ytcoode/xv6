@@ -22,7 +22,13 @@ bootmain(void)
   void (*entry)(void);
   uchar* pa;
 
-  elf = (struct elfhdr*)0x10000;  // scratch space
+  elf = (struct elfhdr*)0x10000;  // scratch space 将kernel的代码加载到这个位置
+
+  // 到目前为止可知的内存占用情况：
+  // [0x100000-MAX     ] | kernel        |
+  // [0x0a0000-0x100000) | device memory |
+  // [0x007c00-0x007e00) | bootblock     |
+  // [0x000000-0x007c00) | stack         |
 
   // Read 1st page off disk
   readseg((uchar*)elf, 4096, 0);
