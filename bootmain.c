@@ -38,6 +38,7 @@ bootmain(void)
     return;  // let bootasm.S handle error
 
   // Load each program segment (ignores ph flags).
+  // elf的具体格式请看：http://man7.org/linux/man-pages/man5/elf.5.html
   ph = (struct proghdr*)((uchar*)elf + elf->phoff);
   eph = ph + elf->phnum;
   for(; ph < eph; ph++){
