@@ -91,11 +91,11 @@ CFLAGS += -fno-pie -nopie
 endif
 
 xv6.img: bootblock kernel
-	# 创建一个名为xv6.img的文件，大小为512*10000字节（约4.9MiB），且每个字节的值都为0
+        # 创建一个名为xv6.img的文件，大小为512*10000字节（约4.9MiB），且每个字节的值都为0
 	dd if=/dev/zero of=xv6.img count=10000
-	# 从xv6.img的第1个字节开始，顺序将bootblock文件中的每个字节覆盖到xv6.img文件里（bootblock文件小于等于512字节）
+        # 从xv6.img的第1个字节开始，顺序将bootblock文件中的每个字节覆盖到xv6.img文件里（bootblock文件小于等于512字节）
 	dd if=bootblock of=xv6.img conv=notrunc
-	# 从xv6.img的第513个字节开始，顺序将kernel文件中的每个字节覆盖到xv6.img文件里
+        # 从xv6.img的第513个字节开始，顺序将kernel文件中的每个字节覆盖到xv6.img文件里
 	dd if=kernel of=xv6.img seek=1 conv=notrunc
 
 xv6memfs.img: bootblock kernelmemfs
@@ -108,17 +108,17 @@ xv6memfs.img: bootblock kernelmemfs
 bootblock: bootasm.S bootmain.c
 	$(CC) $(CFLAGS) -fno-pic -O -nostdinc -I. -c bootmain.c
 	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c bootasm.S
-	# 将bootblock代码的初始地址设置为0x7c00，开机后bios也是将bootblock的代码加载到0x7c00
-	# 两个地址要一样，否则bootblock内相互引用的地址将会是错乱的
-	# 设置start为bootblock的入口地址（-e start）其实不是必须的，因为start指向的是bootblock的第一行代码（加载到内存后，地址是0x7c00），在bios跳到bootblock后会被默认执行
-	# 之所以有这个设置，我猜是为了消除警告（ld默认的入口地址为_start，bootblock中没这个地址，如果再不显式设置入口地址的话，ld会抛出警告）
+        # 将bootblock代码的初始地址设置为0x7c00，开机后bios也是将bootblock的代码加载到0x7c00
+        # 两个地址要一样，否则bootblock内相互引用的地址将会是错乱的
+        # 设置start为bootblock的入口地址（-e start）其实不是必须的，因为start指向的是bootblock的第一行代码（加载到内存后，地址是0x7c00），在bios跳到bootblock后会被默认执行
+        # 之所以有这个设置，我猜是为了消除警告（ld默认的入口地址为_start，bootblock中没这个地址，如果再不显式设置入口地址的话，ld会抛出警告）
 	$(LD) $(LDFLAGS) -N -e start -Ttext 0x7C00 -o bootblock.o bootasm.o bootmain.o
 	$(OBJDUMP) -S bootblock.o > bootblock.asm
-	# 将bootblock.o内的代码拷贝到bootblock里
-	# 可以通过 hexdump -C bootblock 和 objdump -d bootblock.o 命令比较最终代码的内容，会发现是完全一样的（要注释掉下面一行，防止bootblock内容被修改）
+        # 将bootblock.o内的代码拷贝到bootblock里
+        # 可以通过 hexdump -C bootblock 和 objdump -d bootblock.o 命令比较最终代码的内容，会发现是完全一样的（要注释掉下面一行，防止bootblock内容被修改）
 	$(OBJCOPY) -S -O binary -j .text bootblock.o bootblock
-	# 将bootblock大小扩充至512字节，且设置最后两个字节的内容为0x55和0xAA
-	# 这样bios就可以通过最后两个字节，确定该sector为boot sector
+        # 将bootblock大小扩充至512字节，且设置最后两个字节的内容为0x55和0xAA
+        # 这样bios就可以通过最后两个字节，确定该sector为boot sector
 	./sign.pl bootblock
 
 entryother: entryother.S
@@ -163,9 +163,9 @@ _%: %.o $(ULIB)
 	$(OBJDUMP) -S $@ > $*.asm
 	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $*.sym
 
+# forktest has less library code linked in - needs to be small
+# in order to be able to max out the proc table.
 _forktest: forktest.o $(ULIB)
-	# forktest has less library code linked in - needs to be small
-	# in order to be able to max out the proc table.
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o _forktest forktest.o ulib.o usys.o
 	$(OBJDUMP) -S _forktest > forktest.asm
 
