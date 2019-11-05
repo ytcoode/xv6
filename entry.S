@@ -48,7 +48,7 @@ entry:
   orl     $(CR4_PSE), %eax
   movl    %eax, %cr4
   # Set page directory
-  movl    $(V2P_WO(entrypgdir)), %eax
+  movl    $(V2P_WO(entrypgdir)), %eax # entrypgdir在main.c里
   movl    %eax, %cr3
   # Turn on paging.
   movl    %cr0, %eax
@@ -62,7 +62,7 @@ entry:
   # high addresses. The indirect call is needed because
   # the assembler produces a PC-relative instruction
   # for a direct jump.
-  mov $main, %eax
+  mov $main, %eax # 因为paging已经设置好，所以main方法是虚拟地址是可行的
   jmp *%eax
 
-.comm stack, KSTACKSIZE
+.comm stack, KSTACKSIZE # stack标签占据KSTACKSIZE大小的空间

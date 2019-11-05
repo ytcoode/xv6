@@ -104,6 +104,9 @@ pde_t entrypgdir[NPDENTRIES] = {
   // Map VA's [0, 4MB) to PA's [0, 4MB)
   [0] = (0) | PTE_P | PTE_W | PTE_PS,
   // Map VA's [KERNBASE, KERNBASE+4MB) to PA's [0, 4MB)
+  // 0x80000000映射到0，所以0x80100000映射到0x100000
+  // 0x80100000正好是kernel的起始虚拟地址
+  //   0x100000正好是kernel被加载到物理内存的其实地址
   [KERNBASE>>PDXSHIFT] = (0) | PTE_P | PTE_W | PTE_PS,
 };
 
