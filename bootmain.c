@@ -22,13 +22,15 @@ bootmain(void)
   void (*entry)(void);
   uchar* pa;
 
-  elf = (struct elfhdr*)0x10000;  // scratch space 将kernel的代码加载到这个位置
+  // 将kernel elf header加载到这个位置
+  elf = (struct elfhdr*)0x10000;  // scratch space 
 
   // 到目前为止可知的内存占用情况：
-  // [0x100000-MAX     ] | kernel        |
-  // [0x0a0000-0x100000) | device memory |
-  // [0x007c00-0x007e00) | bootblock     |
-  // [0x000000-0x007c00) | stack         |
+  // [0x100000-MAX     ] | kernel            |
+  // [0x0a0000-0x100000) | device memory     |
+  // [0x010000-0x011000) | kernel elf header |
+  // [0x007c00-0x007e00) | bootblock         |
+  // [0x000000-0x007c00) | stack             |
 
   // Read 1st page off disk
   readseg((uchar*)elf, 4096, 0);
@@ -50,8 +52,9 @@ bootmain(void)
 
   // Call the entry point from the ELF header.
   // Does not return!
+  
   entry = (void(*)(void))(elf->entry);
-  entry();
+  entry(); // entry指向的是entry.S中的_start（物理地址是0x10000c）
 }
 
 void

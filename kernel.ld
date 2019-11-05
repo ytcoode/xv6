@@ -11,7 +11,7 @@ SECTIONS
         /* Must be equal to KERNLINK */
 	. = 0x80100000; /* 虚拟地址的起始地址 */
 
-	.text : AT(0x100000) { /* bootmain.C 会把把kernel加载到这个物理地址 */
+	.text : AT(0x100000) { /* bootmain.C 会把kernel加载到这个物理地址 */
 		*(.text .stub .text.* .gnu.linkonce.t.*)
 	}
 
