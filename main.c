@@ -9,6 +9,8 @@
 static void startothers(void);
 static void mpmain(void)  __attribute__((noreturn));
 extern pde_t *kpgdir;
+
+// end是在kernel.ld中定义的，end之后的空间没有被占用
 extern char end[]; // first address after kernel loaded from ELF file
 
 // Bootstrap processor starts running C code here.
@@ -17,8 +19,15 @@ extern char end[]; // first address after kernel loaded from ELF file
 int
 main(void)
 {
+  // 0x80000000 < end < 0x80000000 + 4MiB
+  // 之所以只初始化了4MiB内存，是因为entrypgdir表示的page table
+  // 只映射了0x80000000到0x80000000 + 4MiB的区间
   kinit1(end, P2V(4*1024*1024)); // phys page allocator
+
+  // 设置最终的page table，0x80000000之后的绝大部分地址空间都有映射
   kvmalloc();      // kernel page table
+
+  
   mpinit();        // detect other processors
   lapicinit();     // interrupt controller
   seginit();       // segment descriptors
